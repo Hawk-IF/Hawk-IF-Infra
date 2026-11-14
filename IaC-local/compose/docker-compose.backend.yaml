@@ -1,0 +1,96 @@
+name: Hawk-IF-Backend
+
+networks:
+  Hawk-IF-Backend-Net:
+    name: Hawk-IF-Backend-Net
+    driver: bridge
+    internal: true
+
+  Hawk-IF-Backend-Gateway-Net:
+    name: Hawk-IF-Backend-Gateway-Net
+    external: true
+
+volumes:
+  Hawk-IF-Postgres-Data:
+  Hawk-IF-Redis-Data:
+  
+secrets:
+  postgres_password:
+    file: ../secrets/postgres_password
+  redis_password:
+    file: ../secrets/redis_password
+
+services:
+  database:
+    image: postgres:18.7-alpine3.24
+
+    restart: on-failure:3
+
+    env_file:
+      - path: ../secrets/.env.postgres
+        required: true
+        format: raw
+
+    environment:
+      POSTGRESS_PASSWORD_FILE: /run/secrets/postgres_password
+
+    secrets: 
+      - postgres_password
+
+    volumes:
+      - Hawk-IF-Postgres-Data:/var/lib/postgresql
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    expose:
+      - "5432"
+
+    networks:
+      - Hawk-IF-Backend-Net
+
+  redis:
+    image: redis:8.10-alpine3.23
+
+    restart: on-failure:3
+
+    command:
+      - sh
+      - -ec
+      - >-
+        exec redis-server
+        --appendonly yes
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+        --requirepass "$$(cat /run/secrets/redis_password)"
+
+    volumes:
+      - Hawk-IF-Redis-Data:/data
+
+    secrets:
+      - redis_password
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "redis-cli --no-auth-warning -a \"$$(cat /run/secrets/redis_password)\" ping | grep -qx PONG"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    expose:
+      - "6379"
+    
+    networks:
+      - Hawk-IF-Backend-Net
+    
