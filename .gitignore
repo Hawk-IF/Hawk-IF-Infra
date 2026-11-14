@@ -1,0 +1,10 @@
+# Envs
+.env.infra
+.env.application
+.env.backend
+.env.postgres
+.env.path
+
+# Secrets
+postgres_password
+redis_password
