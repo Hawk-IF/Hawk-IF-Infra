@@ -19,6 +19,6 @@ resource "docker_volume" "redis" {
 }
 
 resource "local_file" "docker_env" {
-  filename = var.env_file_path
+  filename = var.env_file_docker_resources_path
   content  = local.docker_env_content
 }
