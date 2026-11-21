@@ -1,0 +1,19 @@
+# Identificação do projeto
+project_name = "HawkIF"
+environment  = "development"
+
+# Instalação do Docker
+install_docker         = false
+install_docker_buildx  = false
+install_docker_compose = false
+
+# PostgreSQL
+postgres_db       = "hawkif_db"
+postgres_user     = "postgres"
+postgres_password = "admin"
+
+# Redis
+redis_password = "admin"
+
+# Nginx
+nginx_port = 8080
